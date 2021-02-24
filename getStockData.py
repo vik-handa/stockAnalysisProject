@@ -1,6 +1,7 @@
 from datetime import datetime
 import requests, json
 import pandas as pd
+import matplotlib.pyplot as plt
 
 #retrieve and format data
 token = '63753ff0e6fc15c8593da0ccaca6238f7b6abe6e'
@@ -18,7 +19,8 @@ df = pd.DataFrame(data)
 df.to_csv('old25.csv')
 
 df = df[['date', 'adjClose']]
-for i in range(0,313):
+rowCount = len(df.index)
+for i in range(0, rowCount):
         val = df.at[i, 'date']
         df.at[i, 'date'] = val[:10]
 
@@ -98,7 +100,7 @@ maxAdj = 0
 ratio = 0
 
 #Calculate equities, maximums, and CAGRs
-for i in range(1,313):
+for i in range(1, rowCount):
     df.at[i, 'Unadjusted Equity'] = (priceA * (df.iloc[i,2] + 1))
     priceA = df.at[i, 'Unadjusted Equity']
     if priceA > maxUnadj:
@@ -140,3 +142,10 @@ df['adjClose'] = round(df['adjClose'], 4)
 print(df)
 df.to_csv('new25.csv')
 
+x = df['date']
+y = df['Unadjusted Equity']
+z = df['Adjusted Equity']
+
+plt.plot(x,y)
+plt.plot(x,z)
+plt.show()
