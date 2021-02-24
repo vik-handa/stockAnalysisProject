@@ -3,7 +3,7 @@ import requests, json
 import pandas as pd
 import matplotlib.pyplot as plt
 
-#retrieve and format data
+#retrieve Tiingo data with a dataframe
 token = '63753ff0e6fc15c8593da0ccaca6238f7b6abe6e'
 Ticker = 'SPY'
 startDate = '1995-01-02'
@@ -13,13 +13,12 @@ headers = {
         }
 
 requestResponse = requests.get('https://api.tiingo.com/tiingo/daily/'+ Ticker +'/prices?startDate=1995-01-02&endDate=2021-01-01&resampleFreq=monthly', headers=headers)
-
 data = requestResponse.json()
 df = pd.DataFrame(data)
-df.to_csv('old25.csv')
 
 #Takes only the date and AdjClose Columns from the downloaded data
-#and truncates the date to exclude the time
+#and truncates each date to exclude the time
+#takes '2020-09-30T00:00:00.000Z' to '2020-09-30'
 df = df[['date', 'adjClose']]
 rowCount = len(df.index)
 for i in range(0, rowCount):
@@ -74,6 +73,7 @@ DD_adjusted_perc = pd.Series(DD_adjusted_perc)
 ratio = [0.00]
 ratio = pd.Series(ratio)
 
+#Initialize dataframe columns with those series
 df['1 Month Change'] = m1_change
 df['5 Month Change'] = m5_change
 df['Unadjusted Equity'] = equity_unadjusted
@@ -101,15 +101,17 @@ maxUnadj = 0
 maxAdj = 0
 ratio = 0
 
-#Calculate equities, maximums, and CAGRs
 for i in range(1, rowCount):
+    #Calculate Unadjusted Equity
     df.at[i, 'Unadjusted Equity'] = (priceA * (df.iloc[i,2] + 1))
     priceA = df.at[i, 'Unadjusted Equity']
+
+    #Calculate maximum for unadjusted equity
     if priceA > maxUnadj:
         maxUnadj = priceA
-
     df.at[i, 'Max Unadjusted'] = round(maxUnadj, 4)
 
+    #Depending on 'In Market?' value, adjust equity with stock market changes
     if df.at[i, 'In Market?']:
         df.at[i, 'Adjusted Equity'] = (priceB * (df.iloc[i, 2] + 1))
         priceB = df.at[i, 'Adjusted Equity']
@@ -117,11 +119,12 @@ for i in range(1, rowCount):
         df.at[i, 'Adjusted Equity'] = priceB
         priceB = df.at[i, 'Adjusted Equity']
 
+    # Calculate maximum for adjusted equity
     if priceB > maxAdj:
         maxAdj = priceB
-
     df.at[i, 'Max Adjusted'] = round(maxAdj, 4)
 
+    #Calculate CAGRs
     years = df.at[i, 'date']
     years = int(years[0:4]) - 1995
     if years > 0:
@@ -142,12 +145,14 @@ df['5 Month Change'] = round(df['5 Month Change'], 4)
 df['adjClose'] = round(df['adjClose'], 4)
 
 print(df)
+
+#write dataframe to csv file
 df.to_csv('new25.csv')
 
+#creates and plots graph of unadjusted/adjusted equity vs date
 x = df['date']
 y = df['Unadjusted Equity']
 z = df['Adjusted Equity']
-
 plt.plot(x,y)
 plt.plot(x,z)
 plt.show()
