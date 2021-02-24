@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 #retrieve and format data
 token = '63753ff0e6fc15c8593da0ccaca6238f7b6abe6e'
-Ticker = 'AAPL'
+Ticker = 'SPY'
 startDate = '1995-01-02'
 headers = {
         'Content-Type': 'application/json',
@@ -18,6 +18,8 @@ data = requestResponse.json()
 df = pd.DataFrame(data)
 df.to_csv('old25.csv')
 
+#Takes only the date and AdjClose Columns from the downloaded data
+#and truncates the date to exclude the time
 df = df[['date', 'adjClose']]
 rowCount = len(df.index)
 for i in range(0, rowCount):
@@ -25,67 +27,67 @@ for i in range(0, rowCount):
         df.at[i, 'date'] = val[:10]
 
 #initialize columns as long type and name them
-a = df['adjClose']
-a = a.pct_change()
+m1_change = df['adjClose']
+m1_change = m1_change.pct_change()
 
-b = df['adjClose']
-b = b.pct_change(periods=5)
+m5_change = df['adjClose']
+m5_change = m5_change.pct_change(periods=5)
 
-c = [0.00]
-c = pd.Series(c)
+equity_unadjusted = [0.00]
+equity_unadjusted = pd.Series(equity_unadjusted)
 
-d = [0.00]
-d = pd.Series(d)
-truthVal = (a > 0) | (b > 0)
-d = truthVal
-d[0] = True
-d[1] = True
-d[2] = True
+market = [0.00]
+market = pd.Series(market)
+truth_val = (m1_change > 0) | (m5_change > 0)
+market = truth_val
+market[0] = True
+market[1] = True
+market[2] = True
 
-e = [0.00]
-e = pd.Series(e)
+equity_adjusted = [0.00]
+equity_adjusted = pd.Series(equity_adjusted)
 
-f = [0.00]
-f = pd.Series(e)
+CAGR_adjusted = [0.00]
+CAGR_adjusted = pd.Series(CAGR_adjusted)
 
-g = [0.00]
-g = pd.Series(g)
+CAGR_unadjusted = [0.00]
+CAGR_unadjusted = pd.Series(CAGR_unadjusted)
 
-h = [0.00]
-h = pd.Series(h)
+max_unadjusted = [0.00]
+max_unadjusted = pd.Series(max_unadjusted)
 
-i = [0.00]
-i = pd.Series(i)
+max_adjusted = [0.00]
+max_adjusted = pd.Series(max_adjusted)
 
-j = [0.00]
-j = pd.Series(j)
+DD_unadjusted = [0.00]
+DD_unadjusted = pd.Series(DD_unadjusted)
 
-k = [0.00]
-k = pd.Series(k)
+DD_unadjusted_perc = [0.00]
+DD_unadjusted_perc = pd.Series(DD_unadjusted_perc)
 
-l = [0.00]
-l = pd.Series(l)
+DD_adjusted = [0.00]
+DD_adjusted = pd.Series(DD_adjusted)
 
-m = [0.00]
-m = pd.Series(m)
+DD_adjusted_perc = [0.00]
+DD_adjusted_perc = pd.Series(DD_adjusted_perc)
 
-n = [0.00]
-n = pd.Series(n)
+ratio = [0.00]
+ratio = pd.Series(ratio)
 
-df['1 Month Change'] = a
-df['5 Month Change'] = b
-df['Unadjusted Equity'] = c
-df['In Market?'] = d
-df['Adjusted Equity'] = e
-df['Adjusted CAGR'] = f
-df['Unadjusted CAGR'] = g
-df['Max Unadjusted'] = h
-df['Max Adjusted'] = i
-df['DD Unadjusted'] = j
-df['DD Unadjusted Percentage'] = k
-df['DD Adjusted'] = l
-df['DD Unadjusted Percentage'] = m
-df['Sharpe Ratio'] = n
+df['1 Month Change'] = m1_change
+df['5 Month Change'] = m5_change
+df['Unadjusted Equity'] = equity_unadjusted
+df['In Market?'] = market
+df['Adjusted Equity'] = equity_adjusted
+df['Adjusted CAGR'] = CAGR_adjusted
+df['Unadjusted CAGR'] = CAGR_unadjusted
+df['Max Unadjusted'] = max_unadjusted
+df['Max Adjusted'] = max_adjusted
+df['DD Unadjusted'] = DD_unadjusted
+df['DD Unadjusted Percentage'] = DD_unadjusted_perc
+df['DD Adjusted'] = DD_adjusted
+df['DD Unadjusted Percentage'] = DD_adjusted_perc
+df['Sharpe Ratio'] = ratio
 
 #fix Market Participation row error
 df['In Market?'] = df['In Market?'].shift(1)
