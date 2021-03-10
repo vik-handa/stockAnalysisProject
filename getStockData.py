@@ -144,15 +144,70 @@ df['1 Month Change'] = round(df['1 Month Change'], 4)
 df['5 Month Change'] = round(df['5 Month Change'], 4)
 df['adjClose'] = round(df['adjClose'], 4)
 
-print(df)
+#create dataframe to compare following variables
+analysis1 = pd.DataFrame(columns = ['Adjusted CAGR', 'Adj Std Dev', 'Adj Max DD', 'Adj SSR', 'Unadjusted CAGR', 'Unadj Std Dev', 'Unadj Max DD', 'Unadj SSR'])
+rowCount2 = len(analysis1.index)
 
-#write dataframe to csv file
+#copies CAGR values from main dataframe
+analysis1["Adjusted CAGR"] = df['Adjusted CAGR']
+analysis1["Unadjusted CAGR"] = df['Unadjusted CAGR']
+
+#variables and loop is to update the standard deviation
+#and the max drawdowns overtime
+std_calculator1 = pd.Series(dtype = 'float64')
+std_calculator2 = pd.Series(dtype = 'float64')
+maxDD1 = 0
+maxDD2 = 0
+for i in range(12, rowCount):
+    std_calculator1.at[i] = analysis1.iloc[i,0]
+    analysis1.at[i, 'Adj Std Dev'] = std_calculator1.std()
+
+    std_calculator2.at[i] = analysis1.iloc[i, 4]
+    analysis1.at[i, 'Unadj Std Dev'] = std_calculator2.std()
+
+    if df.at[i, 'DD Adjusted'] > maxDD1:
+        maxDD1 = df.at[i, 'DD Adjusted']
+    analysis1.at[i, 'Adj Max DD'] = maxDD1
+
+    if df.at[i, 'DD Unadjusted'] > maxDD2:
+        maxDD2 = df.at[i, 'DD Unadjusted']
+    analysis1.at[i, 'Unadj Max DD'] = maxDD2
+
+    analysis1.at[i, 'Adj SSR'] = analysis1.at[i, 'Adjusted CAGR'] / analysis1.at[i, 'Adj Std Dev']
+    analysis1.at[i, 'Unadj SSR'] = analysis1.at[i, 'Unadjusted CAGR'] / analysis1.at[i, 'Unadj Std Dev']
+
+#second analysis dataframe follows same steps
+#as the first, but on a 5 year basis
+analysis2 = pd.DataFrame(columns = ['Adjusted CAGR', 'Adj Std Dev', 'Adj Max DD', 'Adj SSR', 'Unadjusted CAGR', 'Unadj Std Dev', 'Unadj Max DD', 'Unadj SSR'])
+rowCount3 = len(analysis2.index)
+
+std_calculator3 = pd.Series(dtype = 'float64')
+std_calculator4 = pd.Series(dtype = 'float64')
+maxDD3 = 0
+maxDD4 = 0
+
+for i in range(61, rowCount):
+    analysis2.at[i, 'Adjusted CAGR'] = ((df.at[i, 'Adjusted Equity'] / df.at[i - 60, 'Adjusted Equity']) ** (1 / 5) - 1)
+    analysis2.at[i, 'Unadjusted CAGR'] = ((df.at[i, 'Adjusted Equity'] / df.at[i - 60, 'Unadjusted Equity']) ** (1 / 5) - 1)
+
+    std_calculator3.at[i] = analysis1.iloc[i, 0]
+    analysis2.at[i, 'Adj Std Dev'] = std_calculator3.std()
+
+    std_calculator4.at[i] = analysis1.iloc[i, 4]
+    analysis2.at[i, 'Unadj Std Dev'] = std_calculator4.std()
+
+    if df.at[i, 'DD Adjusted'] > maxDD3:
+        maxDD3 = df.at[i, 'DD Adjusted']
+    analysis2.at[i, 'Adj Max DD'] = maxDD3
+
+    if df.at[i, 'DD Unadjusted'] > maxDD4:
+        maxDD4 = df.at[i, 'DD Unadjusted']
+    analysis2.at[i, 'Unadj Max DD'] = maxDD4
+
+    analysis2.at[i, 'Adj SSR'] = analysis2.at[i, 'Adjusted CAGR'] / analysis1.at[i, 'Adj Std Dev']
+    analysis2.at[i, 'Unadj SSR'] = analysis2.at[i, 'Unadjusted CAGR'] / analysis1.at[i, 'Unadj Std Dev']
+
+#write dataframes to csv files
 df.to_csv('new25.csv')
-
-#creates and plots graph of unadjusted/adjusted equity vs date
-x = df['date']
-y = df['Unadjusted Equity']
-z = df['Adjusted Equity']
-plt.plot(x,y)
-plt.plot(x,z)
-plt.show()
+analysis1.to_csv('Summary1yr.csv')
+analysis2.to_csv('Summary5yr.csv')
