@@ -187,24 +187,24 @@ maxDD_calculator = pd.Series(dtype = 'float64')
 #cuts off the last 5 rows (Not enough data for 5 year intervals after August 2020)
 rolling_unadjusted['Start Date'] = df['date']
 rolling_unadjusted['End Date'] = df['date']
-rolling_unadjusted['End Date'] = rolling_unadjusted['End Date'].shift(periods = -5)
-rolling_unadjusted = rolling_unadjusted[:-5]
-interval_row_count = rowCount - 5
+rolling_unadjusted['End Date'] = rolling_unadjusted['End Date'].shift(periods = -60)
+rolling_unadjusted = rolling_unadjusted[:-60]
+interval_row_count = rowCount - 60
 
 #for each interval
 for i in range(0, interval_row_count):
 
     #add 5 monthly change values into series and find std dev
     #add 5 dropdown percentage values into series and find max
-    for j in range(0,5):
+    for j in range(0,60):
         std_calculator.at[j] = analysis1.iloc[i + j, 2]
         maxDD_calculator.at[j] = analysis1.iloc[i + j, 8]
         maxDD_calculator.at[j] = analysis1.iloc[i + j, 8]
     rolling_unadjusted.at[i, 'Std Dev'] = round(std_calculator.std(), 4)
-    rolling_unadjusted.at[i, 'Max Percentage DD'] = maxDD_calculator.max()
+    rolling_unadjusted.at[i, 'Max Percentage DD'] = maxDD_calculator.min()
 
     #compute CAGR over 5 year span, rounded for clarity
-    rolling_unadjusted.at[i, 'CAGR'] = round((analysis1.iloc[i + 5, 4] / analysis1.iloc[i, 4]) ** 0.2 - 1, 4)
+    rolling_unadjusted.at[i, 'CAGR'] = round((analysis1.iloc[i + 60, 4] / analysis1.iloc[i, 4]) ** 0.2 - 1, 4)
 
 #computes simplifies sharpe ratio for each interval
 rolling_unadjusted['SSR'] = rolling_unadjusted['CAGR'] / rolling_unadjusted['Std Dev']
@@ -213,8 +213,8 @@ rolling_unadjusted['SSR'] = rolling_unadjusted['CAGR'] / rolling_unadjusted['Std
 #copying dstock info again for intervals with TIMER
 rolling_adjusted['Start Date'] = df['date']
 rolling_adjusted['End Date'] = df['date']
-rolling_adjusted['End Date'] = rolling_adjusted['End Date'].shift(periods = -5)
-rolling_adjusted = rolling_adjusted[:-5]
+rolling_adjusted['End Date'] = rolling_adjusted['End Date'].shift(periods = -60)
+rolling_adjusted = rolling_adjusted[:-60]
 
 #keeps track of number of intervals the timer helped
 help_count = 0
@@ -223,15 +223,15 @@ help_count = 0
 for i in range(0, interval_row_count):
 
     #compute standard deviations and max of drawdown percentages
-    for j in range(0,5):
+    for j in range(0,60):
         std_calculator.at[j] = analysis2.iloc[i + j, 2]
         maxDD_calculator.at[j] = analysis2.iloc[i + j, 8]
         maxDD_calculator.at[j] = analysis2.iloc[i + j, 8]
     rolling_adjusted.at[i, 'Std Dev'] = round(std_calculator.std(), 4)
-    rolling_adjusted.at[i, 'Max Percentage DD'] = maxDD_calculator.max()
+    rolling_adjusted.at[i, 'Max Percentage DD'] = maxDD_calculator.min()
 
     #compute CAGRs for 5 year interval, rounded for clarity
-    rolling_adjusted.at[i, 'CAGR'] = round((analysis2.iloc[i + 5, 4] / analysis2.iloc[i, 4]) ** 0.2 - 1, 4)
+    rolling_adjusted.at[i, 'CAGR'] = round((analysis2.iloc[i + 60, 4] / analysis2.iloc[i, 4]) ** 0.2 - 1, 4)
     if rolling_adjusted.at[i, 'Std Dev'] != 0:
         rolling_adjusted.at[i, 'SSR'] = rolling_adjusted.at[i, 'CAGR'] / rolling_adjusted.at[i, 'Std Dev']
 
